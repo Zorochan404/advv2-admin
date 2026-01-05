@@ -1,6 +1,11 @@
 import { apiRequest } from '@/lib/api'
 import { CAR_CATALOG_URLS } from '@/lib/urls'
 
+export interface LocationEstimation {
+  location: string
+  estimatedPrice: number
+}
+
 export interface CarCatalogItem {
   id: number
   carName: string
@@ -17,6 +22,7 @@ export interface CarCatalogItem {
   imageUrl?: string
   isActive: boolean
   category: string
+  estimation?: LocationEstimation[]
   createdBy?: number
   createdAt: string
   updatedAt: string
@@ -36,6 +42,7 @@ export interface CarCatalogCreateData {
   features?: string
   imageUrl?: string
   category: string
+  estimation?: LocationEstimation[]
 }
 
 export interface CarCatalogUpdateData extends Partial<CarCatalogCreateData> {
@@ -146,7 +153,7 @@ export interface CategoriesWithCountsResponse {
 // Get all car catalog entries with pagination and filtering
 export const getAllCarCatalog = async (filters: CarCatalogFilters = {}): Promise<CarCatalogResponse> => {
   const params = new URLSearchParams()
-  
+
   if (filters.page) params.append('page', filters.page.toString())
   if (filters.limit) params.append('limit', filters.limit.toString())
   if (filters.category) params.append('category', filters.category)
@@ -204,7 +211,7 @@ export const getCarCategories = async (): Promise<CarCategoriesResponse> => {
 // Search car catalog with advanced filters
 export const searchCarCatalog = async (filters: CarCatalogSearchFilters = {}): Promise<CarCatalogResponse> => {
   const params = new URLSearchParams()
-  
+
   if (filters.page) params.append('page', filters.page.toString())
   if (filters.limit) params.append('limit', filters.limit.toString())
   if (filters.q) params.append('q', filters.q)

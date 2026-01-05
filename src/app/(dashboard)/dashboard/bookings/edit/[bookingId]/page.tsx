@@ -10,10 +10,10 @@ import { Badge } from '@/components/ui/badge'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Textarea } from '@/components/ui/textarea'
 import { formatCurrency, formatDateTime } from '@/lib/utils'
-import { Calendar, ArrowLeft, Car, User, MapPin, CreditCard, Clock, Save, X, Upload, Loader2 } from 'lucide-react'
+import { Calendar, ArrowLeft, Car, User, MapPin, CreditCard, Clock, Save, X, Upload, Loader2, Plus } from 'lucide-react'
 import { toast } from 'sonner'
 import { getBookingById, updateBookingStatus, Booking, updateBooking } from '../../api'
-import { uploadImageToCloudinary } from '@/lib/cloudinary'
+import { uploadImageToCloudinary, validateImageFile } from '@/lib/cloudinary'
 
 interface BookingFormData {
   id: number
@@ -27,8 +27,8 @@ interface BookingFormData {
   extensionPrice: number | null
   extentiontill: string | null
   extentiontime: string | null
-  status: 'pending' | 'confirmed' | 'active' | 'completed' | 'cancelled'
-  tool: string
+  status: 'pending' | 'advance_paid' | 'confirmed' | 'active' | 'completed' | 'cancelled'
+  tool: Array<{ name: string; imageUrl: string }>
   tripStartingCarImages: string[]
   paymentStatus: 'pending' | 'paid' | 'failed' | 'refunded'
   paymentReferenceId: string | null
@@ -64,7 +64,7 @@ export default function EditBookingPage() {
     extentiontill: null,
     extentiontime: null,
     status: 'pending',
-    tool: '',
+    tool: [],
     tripStartingCarImages: [],
     paymentStatus: 'pending',
     paymentReferenceId: null,
@@ -73,6 +73,7 @@ export default function EditBookingPage() {
   })
 
   const fileInputRefs = useRef<(HTMLInputElement | null)[]>([])
+  const toolFileInputRefs = useRef<(HTMLInputElement | null)[]>([])
 
   // Fetch booking details on component mount
   useEffect(() => {
@@ -151,9 +152,9 @@ export default function EditBookingPage() {
       toast.error('Invalid file. Please upload a valid image (JPEG, PNG, WebP) or PDF under 10MB.')
       return
     }
-    
+
     setUploadingImages(prev => [...prev, index])
-    
+
     try {
       const result = await uploadImageToCloudinary(file, 'booking-images')
       if (result.success && result.data) {
@@ -177,16 +178,92 @@ export default function EditBookingPage() {
     }
   }
 
+  // Tool Management
+  const addTool = () => {
+    setFormData(prev => ({
+      ...prev,
+      tool: [...prev.tool, { name: '', imageUrl: '' }]
+    }))
+  }
+
+  const removeTool = (index: number) => {
+    setFormData(prev => ({
+      ...prev,
+      tool: prev.tool.filter((_, i) => i !== index)
+    }))
+  }
+
+  const handleToolChange = (index: number, field: 'name' | 'imageUrl', value: string) => {
+    const newTools = [...formData.tool]
+    newTools[index] = { ...newTools[index], [field]: value }
+    setFormData(prev => ({
+      ...prev,
+      tool: newTools
+    }))
+  }
+
+  const handleToolImageUpload = async (file: File, index: number) => {
+    if (!validateImageFile(file)) {
+      toast.error('Invalid file. Please upload a valid image (JPEG, PNG, WebP) or PDF under 10MB.')
+      return
+    }
+
+    // Use a negative index range or completely separate state for tool uploads to avoid collision with main images
+    // For simplicity, let's assume we reuse the same loading state logic but map it carefully,
+    // or better, create a separate loading state for tools.
+    // Let's use a unique identifier for tool uploads in the existing state array by offset, e.g., 1000 + index
+    // Or just create a new state variable. Let's create a new one for clarity.
+  }
+
+  const [uploadingToolImages, setUploadingToolImages] = useState<number[]>([])
+
+  const uploadToolImage = async (file: File, index: number) => {
+    if (!validateImageFile(file)) {
+      toast.error('Invalid file. Please upload a valid image (JPEG, PNG, WebP) or PDF under 10MB.')
+      return
+    }
+
+    setUploadingToolImages(prev => [...prev, index])
+
+    try {
+      const result = await uploadImageToCloudinary(file, 'tool-images')
+      if (result.success && result.data) {
+        handleToolChange(index, 'imageUrl', result.data.secure_url)
+        toast.success('Tool image uploaded successfully!')
+      } else {
+        toast.error(result.error || 'Failed to upload tool image')
+      }
+    } catch (error) {
+      console.error('Error uploading tool image:', error)
+      toast.error('Failed to upload tool image')
+    } finally {
+      setUploadingToolImages(prev => prev.filter(i => i !== index))
+    }
+  }
+
+  const handleToolFileChange = (event: React.ChangeEvent<HTMLInputElement>, index: number) => {
+    const file = event.target.files?.[0]
+    if (file) {
+      uploadToolImage(file, index)
+    }
+  }
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setSaving(true)
 
     try {
+      if (!isValidDate(formData.startDate) || !isValidDate(formData.endDate)) {
+        toast.error('Please provide valid start and end dates')
+        setSaving(false)
+        return
+      }
+
       // Convert date fields to ISO strings if valid
       const payload = {
         ...formData,
-        startDate: isValidDate(formData.startDate) ? new Date(formData.startDate ?? '').toISOString() : null,
-        endDate: isValidDate(formData.endDate) ? new Date(formData.endDate ?? '').toISOString() : null,
+        startDate: new Date(formData.startDate).toISOString(),
+        endDate: new Date(formData.endDate).toISOString(),
         extentiontill: isValidDate(formData.extentiontill) ? new Date(formData.extentiontill ?? '').toISOString() : null,
       }
       const result = await updateBooking(payload as unknown as Booking)
@@ -208,6 +285,8 @@ export default function EditBookingPage() {
     switch (status) {
       case 'pending':
         return 'bg-yellow-100 text-yellow-800'
+      case 'advance_paid':
+        return 'bg-indigo-100 text-indigo-800'
       case 'confirmed':
         return 'bg-blue-100 text-blue-800'
       case 'active':
@@ -485,6 +564,7 @@ export default function EditBookingPage() {
                   </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="pending">Pending</SelectItem>
+                    <SelectItem value="advance_paid">Advance Paid</SelectItem>
                     <SelectItem value="confirmed">Confirmed</SelectItem>
                     <SelectItem value="active">Active</SelectItem>
                     <SelectItem value="completed">Completed</SelectItem>
@@ -528,15 +608,81 @@ export default function EditBookingPage() {
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <div>
-              <Label htmlFor="tool">Tools Included</Label>
-              <Textarea
-                id="tool"
-                value={formData.tool}
-                onChange={(e) => handleInputChange('tool', e.target.value)}
-                placeholder="e.g., Helmet, First Aid Kit, GPS Device"
-                rows={3}
-              />
+            <div className="space-y-4">
+              {formData.tool.map((toolItem, index) => (
+                <div key={index} className="flex gap-4 items-start border p-4 rounded-lg">
+                  <div className="flex-1 space-y-4">
+                    <div>
+                      <Label>Tool Name</Label>
+                      <Input
+                        value={toolItem.name}
+                        onChange={(e) => handleToolChange(index, 'name', e.target.value)}
+                        placeholder="e.g., GPS Device"
+                      />
+                    </div>
+                    <div>
+                      <Label>Tool Image</Label>
+                      <div className="flex gap-2">
+                        <Input
+                          value={toolItem.imageUrl}
+                          onChange={(e) => handleToolChange(index, 'imageUrl', e.target.value)}
+                          placeholder="https://..."
+                          className="flex-1"
+                        />
+                        <input
+                          type="file"
+                          accept="image/*,.pdf"
+                          ref={el => { toolFileInputRefs.current[index] = el || null; }}
+                          onChange={(e) => handleToolFileChange(e, index)}
+                          className="hidden"
+                        />
+                        <Button
+                          type="button"
+                          variant="outline"
+                          size="icon"
+                          disabled={uploadingToolImages.includes(index)}
+                          onClick={() => toolFileInputRefs.current[index]?.click()}
+                        >
+                          {uploadingToolImages.includes(index) ? (
+                            <Loader2 className="h-4 w-4 animate-spin" />
+                          ) : (
+                            <Upload className="h-4 w-4" />
+                          )}
+                        </Button>
+                      </div>
+                      {toolItem.imageUrl && (
+                        <div className="mt-2">
+                          <img
+                            src={toolItem.imageUrl}
+                            alt={toolItem.name || 'Tool'}
+                            className="h-20 w-20 object-cover rounded border"
+                            onError={(e) => { e.currentTarget.style.display = 'none' }}
+                          />
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="icon"
+                    onClick={() => removeTool(index)}
+                    className="text-red-500 hover:text-red-700 hover:bg-red-50"
+                  >
+                    <X className="h-4 w-4" />
+                  </Button>
+                </div>
+              ))}
+
+              <Button
+                type="button"
+                variant="outline"
+                onClick={addTool}
+                className="w-full border-dashed"
+              >
+                <Plus className="h-4 w-4 mr-2" />
+                Add Tool
+              </Button>
             </div>
           </CardContent>
         </Card>
@@ -571,7 +717,7 @@ export default function EditBookingPage() {
                     <X className="h-4 w-4" />
                   </Button>
                 </div>
-                
+
                 {/* Image Upload Section */}
                 <div className="flex items-center gap-2">
                   <input
@@ -606,7 +752,7 @@ export default function EditBookingPage() {
                       </>
                     )}
                   </Button>
-                  
+
                   {/* Image Preview */}
                   {image && (
                     <div className="flex-1">
@@ -623,7 +769,7 @@ export default function EditBookingPage() {
                 </div>
               </div>
             ))}
-            
+
             <div className="flex gap-2">
               <Button
                 type="button"

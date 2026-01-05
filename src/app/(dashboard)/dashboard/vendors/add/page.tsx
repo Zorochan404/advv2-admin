@@ -37,6 +37,8 @@ export default function AddVendorPage() {
     avatar: "",
     role: "vendor",
     isverified: false,
+    carCount: 0,
+    cars: [],
   });
 
   const [imageLoading, setImageLoading] = useState({

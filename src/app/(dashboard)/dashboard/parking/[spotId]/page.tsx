@@ -5,7 +5,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
-import { 
+import {
   Dialog,
   DialogContent,
   DialogDescription,
@@ -394,7 +394,7 @@ export default function ParkingSpotPage() {
   const [searching, setSearching] = useState(false)
   const [searchResult, setSearchResult] = useState<any>(null)
   const [assigning, setAssigning] = useState(false)
-  
+
   // Bulk user assignment state
   const [users, setUsers] = useState<UserType[]>([])
   const [selectedUsers, setSelectedUsers] = useState<string[]>([])
@@ -444,7 +444,7 @@ export default function ParkingSpotPage() {
     const number = {
       number: searchPhone
     }
-    
+
     try {
       const result = await searchParkingInchargeByPhone(number)
       if (result) {
@@ -464,7 +464,7 @@ export default function ParkingSpotPage() {
 
   const handleAssignIncharge = async (inchargeId: number) => {
     setAssigning(true)
-    
+
     try {
       const result = await assignInchargeToParking(parseInt(spotId), inchargeId)
       if (result) {
@@ -528,7 +528,7 @@ export default function ParkingSpotPage() {
         }
       }
     } catch (error) {
-      console.error('Error deleting incharge:', error)
+      console.log('Error deleting incharge:', error)
       toast.error('Failed to delete incharge')
     }
   }
@@ -546,7 +546,7 @@ export default function ParkingSpotPage() {
         userIds: selectedUsers.map(id => parseInt(id)),
         role: 'parkingincharge'
       }
-      
+
       const result = await assignUserRoles(request)
       if (result) {
         toast.success(`Successfully assigned ${selectedUsers.length} users as parking managers`)
@@ -570,8 +570,8 @@ export default function ParkingSpotPage() {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-4">
-          <Button 
-            variant="ghost" 
+          <Button
+            variant="ghost"
             onClick={() => router.push('/dashboard/parking')}
             className="p-2"
           >
@@ -586,7 +586,7 @@ export default function ParkingSpotPage() {
           </div>
         </div>
         <div className="flex gap-2">
-          <Button 
+          <Button
             onClick={() => router.push(`/dashboard/parking/edit/${spotId}`)}
             className="flex items-center gap-2"
           >
@@ -744,7 +744,7 @@ export default function ParkingSpotPage() {
               <TabsTrigger value="rented">Booked ({bookedCars.length})</TabsTrigger>
               <TabsTrigger value="maintenance">Maintenance ({maintenanceCars.length})</TabsTrigger>
             </TabsList>
-            
+
             <TabsContent value="all" className="space-y-4">
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                 {carsAtSpot.map((car: Car) => (
@@ -790,7 +790,7 @@ export default function ParkingSpotPage() {
                 Manage parking managers and staff assigned to this location
               </CardDescription>
             </div>
-            <Button 
+            <Button
               onClick={() => router.push(`/dashboard/parking/add-manager/${spotId}`)}
               className="flex items-center gap-2"
             >
@@ -820,7 +820,7 @@ export default function ParkingSpotPage() {
                   />
                 </div>
                 <div className="flex items-end">
-                  <Button 
+                  <Button
                     onClick={handleSearchIncharge}
                     disabled={searching || !searchPhone.trim()}
                     className="flex items-center gap-2"
@@ -880,13 +880,13 @@ export default function ParkingSpotPage() {
                   onChange={setSelectedUsers}
                 />
               </div>
-              
+
               <div className="flex items-center gap-4 p-3 bg-white rounded-lg border">
                 <div className="flex-1">
                   <p className="text-sm font-medium">Selected Users: {selectedUsers.length}</p>
                   <p className="text-xs text-gray-600">Role: Parking In Charge (PIC)</p>
                 </div>
-                <Button 
+                <Button
                   onClick={handleBulkAssignUsers}
                   disabled={bulkAssigning || selectedUsers.length === 0}
                   className="min-w-[120px]"
@@ -904,7 +904,7 @@ export default function ParkingSpotPage() {
               <p className="text-gray-600 mb-4">
                 This parking spot doesn't have any managers assigned yet.
               </p>
-              <Button 
+              <Button
                 onClick={() => router.push(`/dashboard/parking/add-manager/${spotId}`)}
                 className="flex items-center gap-2"
               >
@@ -957,9 +957,9 @@ export default function ParkingSpotPage() {
                       <Badge variant="outline">{incharge.role}</Badge>
                     </TableCell>
                     <TableCell>
-                      <Badge 
-                        className={incharge.isverified 
-                          ? 'bg-green-100 text-green-800' 
+                      <Badge
+                        className={incharge.isverified
+                          ? 'bg-green-100 text-green-800'
                           : 'bg-red-100 text-red-800'
                         }
                       >

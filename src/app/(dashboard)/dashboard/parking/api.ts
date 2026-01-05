@@ -23,31 +23,31 @@ export interface ParkingSpot {
 
 
 export interface ParkingManager {
- 
-        updatedAt?: Timestamp;
-        createdAt?: Timestamp;
-        id?: number;
-        name: string;
-        avatar: string;
-        age: number | "";
-        number: number | "";
-        email: string;
-        password: string;
-        aadharNumber: string;
-        aadharimg: string;
-        dlNumber: string;
-        dlimg: string;
-        passportNumber: string;
-        passportimg: string;
-        locality: string;
-        city: string;
-        state: string;
-        country: string;
-        pincode: number | "";
-        isverified: boolean;
-        role: string;
-        parkingid: number;
-      }
+
+  updatedAt?: Timestamp;
+  createdAt?: Timestamp;
+  id?: number;
+  name: string;
+  avatar: string;
+  age: number | "";
+  number: number | "";
+  email: string;
+  password: string;
+  aadharNumber: string;
+  aadharimg: string;
+  dlNumber: string;
+  dlimg: string;
+  passportNumber: string;
+  passportimg: string;
+  locality: string;
+  city: string;
+  state: string;
+  country: string;
+  pincode: number | "";
+  isverified: boolean;
+  role: string;
+  parkingid: number;
+}
 
 export const getParkingSpots = async (): Promise<ParkingSpot[] | null> => {
   try {
@@ -63,7 +63,7 @@ export const getParkingSpots = async (): Promise<ParkingSpot[] | null> => {
         'Content-Type': 'application/json'
       }
     });
-    
+
     if (response.status === 200 && response.data && response.data.success) {
       // Handle the correct response structure: data.parkings
       if (response.data.data && response.data.data.parkings && Array.isArray(response.data.data.parkings)) {
@@ -87,8 +87,8 @@ export const getParkingSpotById = async (id: number): Promise<any> => {
     const accessToken = Cookies.get('accessToken')
 
     if (!accessToken) {
-        toast.error('No access token found')
-        return
+      toast.error('No access token found')
+      return
     }
     const response = await axios.get(PARKING_URLS.GET_PARKING_SPOT_BY_ID(id), {
       headers: {
@@ -111,8 +111,8 @@ export const addParkingSpot = async (parkingSpot: ParkingSpot): Promise<any> => 
   try {
     const accessToken = Cookies.get('accessToken')
     if (!accessToken) {
-        toast.error('No access token found')
-        return
+      toast.error('No access token found')
+      return
     }
     const response = await axios.post(PARKING_URLS.ADD_PARKING_SPOT, parkingSpot, {
       headers: {
@@ -120,7 +120,7 @@ export const addParkingSpot = async (parkingSpot: ParkingSpot): Promise<any> => 
         'Content-Type': 'application/json'
       }
     });
-    if (response.status === 200 && response.data && response.data.data) {
+    if (response.data.statusCode === 201 && response.data && response.data.data) {
       return response.data.data;
     }
     return null;
@@ -134,8 +134,8 @@ export const updateParkingSpot = async (id: number, parkingSpot: Partial<Parking
   try {
     const accessToken = Cookies.get('accessToken')
     if (!accessToken) {
-        toast.error('No access token found')
-        return
+      toast.error('No access token found')
+      return
     }
     const response = await axios.put(PARKING_URLS.UPDATE_PARKING_SPOT(id), parkingSpot, {
       headers: {
@@ -156,8 +156,8 @@ export const deleteParkingSpot = async (id: number): Promise<any> => {
   try {
     const accessToken = Cookies.get('accessToken')
     if (!accessToken) {
-        toast.error('No access token found')
-        return
+      toast.error('No access token found')
+      return
     }
     const response = await axios.delete(PARKING_URLS.DELETE_PARKING_SPOT(id), {
       headers: {
@@ -165,8 +165,8 @@ export const deleteParkingSpot = async (id: number): Promise<any> => {
         'Content-Type': 'application/json'
       }
     });
-    if (response.status === 200 && response.data && response.data.data) {
-      return response.data.data;
+    if (response.data.statusCode === 200) {
+      return response.data;
     }
     return null;
   } catch (error) {
@@ -198,7 +198,7 @@ export const addParkingManager = async (parkingManager: ParkingManager): Promise
   }
 }
 
-export const searchParkingInchargeByPhone = async (number: { number: string; }): Promise<any>  => {
+export const searchParkingInchargeByPhone = async (number: { number: string; }): Promise<any> => {
   try {
     const accessToken = Cookies.get('accessToken')
     if (!accessToken) {
@@ -326,7 +326,7 @@ export const deleteParkingIncharge = async (id: number): Promise<any> => {
       toast.error('No access token found')
       return
     }
-    const response = await axios.put(USER_URLS.UPDATE_USER(id),{parkingid:null}, {
+    const response = await axios.put(USER_URLS.UPDATE_USER(id), { parkingid: null }, {
       headers: {
         'Authorization': `${accessToken}`,
         'Content-Type': 'application/json'
@@ -432,7 +432,7 @@ export const searchParkingSpots = async (params: SearchParams): Promise<SearchRe
       toast.error('No access token found')
       return null
     }
-    
+
     const queryParams = new URLSearchParams();
     if (params.search) queryParams.append('search', params.search);
     if (params.city) queryParams.append('city', params.city);
@@ -442,7 +442,7 @@ export const searchParkingSpots = async (params: SearchParams): Promise<SearchRe
     if (params.limit) queryParams.append('limit', params.limit.toString());
 
     const url = `${ADMIN_PARKING_URLS.SEARCH}?${queryParams.toString()}`;
-    
+
     const response = await axios.get(url, {
       headers: {
         'Authorization': `${accessToken}`,
@@ -466,13 +466,13 @@ export const getParkingAnalytics = async (period: string = 'monthly', spotId?: n
       toast.error('No access token found')
       return null
     }
-    
+
     const queryParams = new URLSearchParams();
     queryParams.append('period', period);
     if (spotId) queryParams.append('spotId', spotId.toString());
 
     const url = `${ADMIN_PARKING_URLS.GET_ANALYTICS}?${queryParams.toString()}`;
-    
+
     const response = await axios.get(url, {
       headers: {
         'Authorization': `${accessToken}`,
@@ -496,7 +496,7 @@ export const getManagerPerformance = async (): Promise<ManagerPerformance[] | nu
       toast.error('No access token found')
       return null
     }
-    
+
     const response = await axios.get(ADMIN_PARKING_URLS.GET_MANAGER_PERFORMANCE, {
       headers: {
         'Authorization': `${accessToken}`,
@@ -565,7 +565,7 @@ export const getAdminUsers = async (params?: {
       toast.error('No access token found')
       return null
     }
-    
+
     const queryParams = new URLSearchParams();
     if (params?.search) queryParams.append('search', params.search);
     if (params?.role) queryParams.append('role', params.role);
@@ -573,7 +573,7 @@ export const getAdminUsers = async (params?: {
     if (params?.offset) queryParams.append('offset', params.offset.toString());
 
     const url = `${ADMIN_USER_URLS.GET_USERS}?${queryParams.toString()}`;
-    
+
     const response = await axios.get(url, {
       headers: {
         'Authorization': `${accessToken}`,
@@ -597,7 +597,7 @@ export const assignUserRoles = async (request: AssignRolesRequest): Promise<any>
       toast.error('No access token found')
       return null
     }
-    
+
     const response = await axios.post(ADMIN_USER_URLS.ASSIGN_ROLES, request, {
       headers: {
         'Authorization': `${accessToken}`,

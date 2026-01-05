@@ -139,6 +139,19 @@ export const INTERNAL_API_URLS = {
   AUTH_TOKEN: '/api/auth/token',
 } as const
 
+// Car request endpoints
+export const CAR_REQUEST_URLS = {
+  GET_ALL: `${BASE_URL}/car-request`,
+  ASSIGN_PARKING: (id: number) => `${BASE_URL}/car-request/${id}/assign-parking`,
+} as const
+
+// Parking approval endpoints
+export const PARKING_APPROVAL_URLS = {
+  GET_ALL: `${BASE_URL}/parking/approval-requests`,
+  GET_BY_ID: (id: number) => `${BASE_URL}/parking/getapprovalbyid/${id}`,
+  ACTION: (id: number) => `${BASE_URL}/parking/approval-requests/${id}`,
+} as const
+
 // Helper function to get base URL
 export const getBaseUrl = (): string => BASE_URL
 

@@ -9,7 +9,7 @@ import { Label } from '@/components/ui/label'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Textarea } from '@/components/ui/textarea'
 import { Switch } from '@/components/ui/switch'
-import { ArrowLeft, Upload, Loader2 } from 'lucide-react'
+import { ArrowLeft, Upload, Loader2, Trash2 } from 'lucide-react'
 import { toast } from 'sonner'
 import { createCarCatalog, type CarCatalogCreateData } from '../api'
 import { uploadImageToCloudinary, validateImageFile } from '@/lib/cloudinary'
@@ -29,12 +29,22 @@ interface CarCatalogFormData {
   imageUrl: string
   category: string
   isActive: boolean
+  estimation: {
+    location: string
+    estimatedPrice: number
+  }[]
+}
+
+interface EstimationError {
+  location?: string
+  estimatedPrice?: string
 }
 
 export default function AddCarCatalogPage() {
   const router = useRouter()
   const [loading, setLoading] = useState(false)
   const [imageLoading, setImageLoading] = useState(false)
+  const [estimationErrors, setEstimationErrors] = useState<EstimationError[]>([])
   
   const [formData, setFormData] = useState<CarCatalogFormData>({
     carName: '',
@@ -50,7 +60,13 @@ export default function AddCarCatalogPage() {
     features: '',
     imageUrl: '',
     category: 'sedan',
-    isActive: true
+    isActive: true,
+    estimation: [
+      {
+        location: '',
+        estimatedPrice: 0
+      }
+    ]
   })
 
   const categories = [
@@ -60,6 +76,43 @@ export default function AddCarCatalogPage() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setLoading(true)
+
+    // Validate estimation before submit
+    const newErrors: EstimationError[] = []
+    let hasError = false
+
+    if (!formData.estimation || formData.estimation.length === 0) {
+      toast.error('Please add at least one location-based price estimation.')
+      setLoading(false)
+      return
+    }
+
+    formData.estimation.forEach((item, index) => {
+      const error: EstimationError = {}
+
+      if (!item.location.trim()) {
+        error.location = 'Location is required'
+        hasError = true
+      }
+
+      if (item.estimatedPrice === undefined || item.estimatedPrice === null || isNaN(item.estimatedPrice)) {
+        error.estimatedPrice = 'Estimated price is required'
+        hasError = true
+      } else if (item.estimatedPrice <= 0) {
+        error.estimatedPrice = 'Estimated price must be a positive number'
+        hasError = true
+      }
+
+      newErrors[index] = error
+    })
+
+    setEstimationErrors(newErrors)
+
+    if (hasError) {
+      toast.error('Please fix the errors in location-based price estimation.')
+      setLoading(false)
+      return
+    }
 
     try {
       const catalogData: CarCatalogCreateData = {
@@ -75,7 +128,11 @@ export default function AddCarCatalogPage() {
         mileage: formData.mileage || undefined,
         features: formData.features || undefined,
         imageUrl: formData.imageUrl || undefined,
-        category: formData.category
+        category: formData.category,
+        estimation: formData.estimation.map(item => ({
+          location: item.location.trim(),
+          estimatedPrice: item.estimatedPrice
+        }))
       }
 
       const response = await createCarCatalog(catalogData)
@@ -99,6 +156,71 @@ export default function AddCarCatalogPage() {
       ...prev,
       [field]: value
     }))
+  }
+
+  const handleEstimationChange = (
+    index: number,
+    field: 'location' | 'estimatedPrice',
+    value: string
+  ) => {
+    setFormData(prev => {
+      const updated = [...prev.estimation]
+      if (field === 'estimatedPrice') {
+        updated[index] = {
+          ...updated[index],
+          estimatedPrice: value === '' ? 0 : Number(value)
+        }
+      } else {
+        updated[index] = {
+          ...updated[index],
+          location: value
+        }
+      }
+      return {
+        ...prev,
+        estimation: updated
+      }
+    })
+
+    setEstimationErrors(prev => {
+      const updated = [...prev]
+      if (!updated[index]) updated[index] = {}
+      updated[index] = {
+        ...updated[index],
+        [field]: undefined
+      }
+      return updated
+    })
+  }
+
+  const addEstimationRow = () => {
+    setFormData(prev => ({
+      ...prev,
+      estimation: [
+        ...prev.estimation,
+        { location: '', estimatedPrice: 0 }
+      ]
+    }))
+  }
+
+  const removeEstimationRow = (index: number) => {
+    setFormData(prev => {
+      const updated = [...prev.estimation]
+      if (updated.length === 1) {
+        return prev
+      }
+      updated.splice(index, 1)
+      return {
+        ...prev,
+        estimation: updated
+      }
+    })
+
+    setEstimationErrors(prev => {
+      const updated = [...prev]
+      updated.splice(index, 1)
+      return updated
+    })
   }
 
   const uploadImage = async (file: File) => {
@@ -327,6 +449,83 @@ export default function AddCarCatalogPage() {
                   <p className="text-sm text-gray-600 mt-1">Amount customers pay per day</p>
                 </div>
               </div>
+            </div>
+
+            {/* Location-based Price Estimation */}
+            <div className="space-y-4">
+              <h3 className="text-lg font-medium">Location-based Price Estimation</h3>
+              <p className="text-sm text-gray-600">
+                Configure estimated prices for different pickup locations.
+              </p>
+              <div className="space-y-3">
+                {formData.estimation.map((item, index) => (
+                  <div
+                    key={index}
+                    className="grid grid-cols-1 md:grid-cols-[2fr,2fr,auto] gap-3 items-end border rounded-md p-3"
+                  >
+                    <div>
+                      <Label htmlFor={`estimation-location-${index}`}>Location *</Label>
+                      <Input
+                        id={`estimation-location-${index}`}
+                        value={item.location}
+                        onChange={(e) =>
+                          handleEstimationChange(index, 'location', e.target.value)
+                        }
+                        placeholder="Airport"
+                      />
+                      {estimationErrors[index]?.location && (
+                        <p className="text-sm text-red-500 mt-1">
+                          {estimationErrors[index]?.location}
+                        </p>
+                      )}
+                    </div>
+                    <div>
+                      <Label htmlFor={`estimation-price-${index}`}>Estimated Price (₹) *</Label>
+                      <Input
+                        id={`estimation-price-${index}`}
+                        type="number"
+                        min="0"
+                        step="0.01"
+                        value={
+                          Number.isNaN(item.estimatedPrice)
+                            ? ''
+                            : item.estimatedPrice
+                        }
+                        onChange={(e) =>
+                          handleEstimationChange(index, 'estimatedPrice', e.target.value)
+                        }
+                        placeholder="1200"
+                      />
+                      {estimationErrors[index]?.estimatedPrice && (
+                        <p className="text-sm text-red-500 mt-1">
+                          {estimationErrors[index]?.estimatedPrice}
+                        </p>
+                      )}
+                    </div>
+                    <div className="flex md:justify-end">
+                      <Button
+                        type="button"
+                        variant="outline"
+                        size="icon"
+                        className="mt-1"
+                        onClick={() => removeEstimationRow(index)}
+                        disabled={formData.estimation.length === 1}
+                        aria-label="Remove location estimation"
+                      >
+                        <Trash2 className="h-4 w-4" />
+                      </Button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+              <Button
+                type="button"
+                variant="outline"
+                onClick={addEstimationRow}
+                disabled={loading || imageLoading}
+              >
+                Add Location Price
+              </Button>
             </div>
 
             {/* Image */}

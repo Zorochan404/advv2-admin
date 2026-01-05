@@ -6,13 +6,13 @@ import { usePathname, useRouter } from 'next/navigation'
 import { logout } from '@/lib/auth'
 import { Button } from '@/components/ui/button'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
-import { 
-  DropdownMenu, 
-  DropdownMenuContent, 
-  DropdownMenuItem, 
-  DropdownMenuLabel, 
-  DropdownMenuSeparator, 
-  DropdownMenuTrigger 
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger
 } from '@/components/ui/dropdown-menu'
 import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet'
 import { cn } from '@/lib/utils'
@@ -41,6 +41,8 @@ const navigation = [
   { name: 'Bookings', href: '/dashboard/bookings', icon: Calendar },
   { name: 'Payments', href: '/dashboard/payments', icon: CreditCard },
   { name: 'Vendors', href: '/dashboard/vendors', icon: User },
+  { name: 'Car Request', href: '/dashboard/car-requests', icon: Car },
+  { name: 'Parking Approvals', href: '/dashboard/parking-approvals', icon: MapPin }
   // { name: 'Analytics', href: '/dashboard/analytics', icon: BarChart3 },
 ]
 
@@ -69,7 +71,7 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
           <p className="text-sm text-muted-foreground">Admin Dashboard</p>
         </div>
       </div>
-      
+
       <nav className="flex-1 px-4 py-6 space-y-2">
         {navigation.map((item) => {
           const isActive = pathname === item.href
@@ -123,7 +125,7 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
                 <Sidebar mobile />
               </SheetContent>
             </Sheet>
-            
+
             <div>
               <h2 className="font-semibold text-lg text-gray-900">
                 {navigation.find(item => item.href === pathname)?.name || 'Dashboard'}
@@ -135,7 +137,7 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
             <Button variant="ghost" size="icon">
               <Bell className="h-5 w-5" />
             </Button>
-            
+
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
                 <Button variant="ghost" className="relative h-8 w-8 rounded-full">

@@ -6,13 +6,13 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
-import { 
-  Table, 
-  TableBody, 
-  TableCell, 
-  TableHead, 
-  TableHeader, 
-  TableRow 
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow
 } from '@/components/ui/table'
 import {
   Dialog,
@@ -26,12 +26,12 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { formatCurrency, formatDate, formatDateTime } from '@/lib/utils'
-import { 
-  CreditCard, 
-  Search, 
-  Eye, 
-  Download, 
-  TrendingUp, 
+import {
+  CreditCard,
+  Search,
+  Eye,
+  Download,
+  TrendingUp,
   TrendingDown,
   DollarSign,
   Clock,
@@ -57,7 +57,7 @@ export default function PaymentsPage() {
   const [statusFilter, setStatusFilter] = useState<string>('all')
   const [methodFilter, setMethodFilter] = useState<string>('all')
   const [selectedPayment, setSelectedPayment] = useState<Payment | null>(null)
-  
+
   // Date range filter state
   const [startDate, setStartDate] = useState('')
   const [endDate, setEndDate] = useState('')
@@ -100,7 +100,7 @@ export default function PaymentsPage() {
       const paymentDate = new Date(payment.createdAt)
       const filterStartDate = new Date(startDate)
       const filterEndDate = new Date(endDate)
-      
+
       matchesDateRange = paymentDate >= filterStartDate && paymentDate <= filterEndDate
     }
 
@@ -328,7 +328,7 @@ export default function PaymentsPage() {
                 </SelectContent>
               </Select>
             </div>
-            
+
             {/* Date Range Filter */}
             <div className="flex gap-4 items-center">
               <Label className="text-sm font-medium">Filter by Payment Date:</Label>
@@ -588,7 +588,7 @@ export default function PaymentsPage() {
                                       </div>
                                       <div className="p-3 bg-red-50 rounded-lg border border-red-200">
                                         <p className="text-sm text-red-600">Refund Date</p>
-                                        <p className="font-medium text-red-800">{formatDateTime(selectedPayment.refundDate)}</p>
+                                        <p className="font-medium text-red-800">{selectedPayment.refundDate ? formatDateTime(selectedPayment.refundDate) : 'N/A'}</p>
                                       </div>
                                       <div className="p-3 bg-red-50 rounded-lg border border-red-200">
                                         <p className="text-sm text-red-600">Refund Reason</p>

@@ -1,7 +1,7 @@
 import axios from "axios";
 import { toast } from "sonner";
 import Cookies from "js-cookie";
-import { Timestamp } from "next/dist/server/lib/cache-handlers/types";
+export type Timestamp = string;
 import { BOOKING_URLS } from '@/lib/urls';
 
 export interface Booking {
@@ -25,7 +25,7 @@ export interface Booking {
   dropoffParkingId: number
   createdAt?: Timestamp
   updatedAt?: Timestamp
-  
+
   // Car object
   car: {
     id: number
@@ -56,7 +56,7 @@ export interface Booking {
     createdAt?: Timestamp
     updatedAt?: Timestamp
   }
-  
+
   // User object
   user: {
     id: number
@@ -84,7 +84,7 @@ export interface Booking {
     createdAt?: Timestamp
     updatedAt?: Timestamp
   }
-  
+
   // Parking details
   pickupParking: {
     id: number
@@ -275,7 +275,7 @@ export const deleteBooking = async (id: number): Promise<{ success: boolean; mes
       message: 'An error occurred while deleting booking'
     }
   }
-} 
+}
 
 export const updateBooking = async (booking: Booking): Promise<{ success: boolean; data?: Booking; message?: string }> => {
   try {
