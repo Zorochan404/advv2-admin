@@ -61,6 +61,7 @@ interface CarFormData {
   isapproved: boolean
   ispopular: boolean
   catalogId: number | null
+  status: string
   // Additional fields from the new API response
   maker?: string
   year?: number
@@ -68,6 +69,8 @@ interface CarFormData {
   fuel?: string
   type?: string
   seats?: number
+  fineperhour: number
+  extensionperhour: number
 }
 
 export default function EditCarPage() {
@@ -125,13 +128,16 @@ export default function EditCarPage() {
     isapproved: false,
     ispopular: false,
     catalogId: null,
+    status: '',
     // Additional fields
     maker: '',
     year: new Date().getFullYear(),
     transmission: 'manual',
     fuel: 'petrol',
     type: 'sedan',
-    seats: 5
+    seats: 5,
+    fineperhour: 0,
+    extensionperhour: 0
   })
 
   // Fetch car data on component mount
@@ -187,7 +193,10 @@ export default function EditCarPage() {
             transmission: carData.transmission || 'manual',
             fuel: carData.fuel || 'petrol',
             type: carData.type || 'sedan',
-            seats: carData.seats || 5
+            seats: carData.seats || 5,
+            status: carData.status || 'available',
+            fineperhour: carData.fineperhour || 0,
+            extensionperhour: carData.extensionperhour || 0
           })
 
           // Set selected values for dropdowns using the vendor and parking objects
@@ -397,7 +406,10 @@ export default function EditCarPage() {
         rcimg: formData.rcimg || '',
         pollutionimg: formData.pollutionimg || '',
         insuranceimg: formData.insuranceimg || '',
-        mainimg: formData.mainimg || ''
+        mainimg: formData.mainimg || '',
+        status: formData.status,
+        fineperhour: formData.fineperhour || 0,
+        extensionperhour: formData.extensionperhour || 0
       }
 
       console.log('Updating car data:', submitData)
@@ -797,6 +809,26 @@ export default function EditCarPage() {
                   value={formData.discountedprice}
                   onChange={(e) => handleInputChange('discountedprice', parseFloat(e.target.value))}
                   placeholder="1200"
+                />
+              </div>
+              <div>
+                <Label htmlFor="fineperhour">Fine Per Hour (₹)</Label>
+                <Input
+                  id="fineperhour"
+                  type="number"
+                  value={formData.fineperhour}
+                  onChange={(e) => handleInputChange('fineperhour', parseFloat(e.target.value))}
+                  placeholder="100"
+                />
+              </div>
+              <div>
+                <Label htmlFor="extensionperhour">Extension Per Hour (₹)</Label>
+                <Input
+                  id="extensionperhour"
+                  type="number"
+                  value={formData.extensionperhour}
+                  onChange={(e) => handleInputChange('extensionperhour', parseFloat(e.target.value))}
+                  placeholder="150"
                 />
               </div>
             </div>
@@ -1294,22 +1326,25 @@ export default function EditCarPage() {
           </CardHeader>
           <CardContent className="space-y-4">
             <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-              <div className="flex items-center space-x-2">
-                <Switch
-                  id="isavailable"
-                  checked={formData.isavailable}
-                  onCheckedChange={(checked: any) => handleInputChange('isavailable', checked)}
-                />
-                <Label htmlFor="isavailable">Available</Label>
+              <div className="md:col-span-2">
+                <Label htmlFor="status">Status</Label>
+                <Select
+                  value={formData.status}
+                  onValueChange={(value) => handleInputChange('status', value)}
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select status" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="available">Available</SelectItem>
+                    <SelectItem value="rented">Rented</SelectItem>
+                    <SelectItem value="maintenance">Maintenance</SelectItem>
+                    <SelectItem value="out_of_service">Out of Service</SelectItem>
+                    <SelectItem value="unavailable">Unavailable</SelectItem>
+                  </SelectContent>
+                </Select>
               </div>
-              <div className="flex items-center space-x-2">
-                <Switch
-                  id="inmaintainance"
-                  checked={formData.inmaintainance}
-                  onCheckedChange={(checked: any) => handleInputChange('inmaintainance', checked)}
-                />
-                <Label htmlFor="inmaintainance">In Maintenance</Label>
-              </div>
+
               <div className="flex items-center space-x-2">
                 <Switch
                   id="isapproved"

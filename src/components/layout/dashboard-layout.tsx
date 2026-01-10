@@ -29,7 +29,8 @@ import {
   Home,
   User,
   BookOpen,
-  CreditCard
+  CreditCard,
+  Ticket
 } from 'lucide-react'
 
 const navigation = [
@@ -42,7 +43,9 @@ const navigation = [
   { name: 'Payments', href: '/dashboard/payments', icon: CreditCard },
   { name: 'Vendors', href: '/dashboard/vendors', icon: User },
   { name: 'Car Request', href: '/dashboard/car-requests', icon: Car },
-  { name: 'Parking Approvals', href: '/dashboard/parking-approvals', icon: MapPin }
+  { name: 'Parking Approvals', href: '/dashboard/parking-approvals', icon: MapPin },
+  { name: 'Advertisements', href: '/dashboard/advertisements', icon: BookOpen },
+  { name: 'Coupon Management', href: '/dashboard/coupons', icon: Ticket },
   // { name: 'Analytics', href: '/dashboard/analytics', icon: BarChart3 },
 ]
 

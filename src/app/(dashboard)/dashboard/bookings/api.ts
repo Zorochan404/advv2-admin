@@ -44,8 +44,6 @@ export interface Booking {
     rcimg: string
     pollutionimg: string
     insuranceimg: string
-    inmaintainance: boolean
-    isavailable: boolean
     images: string[]
     mainimg: string[]
     vendorid: number
@@ -53,6 +51,7 @@ export interface Booking {
     isapproved: boolean
     ispopular: boolean
     insurancePrice: number
+    status: string
     createdAt?: Timestamp
     updatedAt?: Timestamp
   }

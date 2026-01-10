@@ -37,8 +37,6 @@ export interface Car {
   rcimg: string
   pollutionimg: string
   insuranceimg: string
-  inmaintainance: boolean
-  isavailable: boolean
   images: string[] | null
   mainimg: string
   vendorid: number
@@ -47,6 +45,9 @@ export interface Car {
   parking: Parking | null
   isapproved: boolean
   ispopular: boolean
+  status: string
+  fineperhour: number
+  extensionperhour: number
   createdAt: string
   updatedAt: string
 }
@@ -127,7 +128,7 @@ export async function fetchCars(params: FetchCarsParams = {}): Promise<{ success
 
     // Build query parameters
     const queryParams = new URLSearchParams()
-    
+
     if (params.search) queryParams.append('search', params.search)
     if (params.status && params.status !== 'all') queryParams.append('status', params.status)
     if (params.popularOnly) queryParams.append('popularOnly', 'true')

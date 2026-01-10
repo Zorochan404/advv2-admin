@@ -52,47 +52,48 @@ interface CarFormData {
   rcimg: string
   pollutionimg: string
   insuranceimg: string
-  inmaintainance: boolean
-  isavailable: boolean
   images: string[]
   mainimg: string
   vendorid: number
   parkingid: number | null
   isapproved: boolean
   ispopular: boolean
+  status: string
+  fineperhour: number
+  extensionperhour: number
 }
 
 export default function AddCarPage() {
   const router = useRouter()
   const [loading, setLoading] = useState(false)
-  
+
   // Individual loading states for each image upload
   const [mainImageLoading, setMainImageLoading] = useState(false)
   const [additionalImageLoading, setAdditionalImageLoading] = useState(false)
   const [rcImageLoading, setRcImageLoading] = useState(false)
   const [pollutionImageLoading, setPollutionImageLoading] = useState(false)
   const [insuranceImageLoading, setInsuranceImageLoading] = useState(false)
-  
+
   // Select options and loading states
-  const [carCatalogOptions, setCarCatalogOptions] = useState<{value: string, label: string}[]>([])
+  const [carCatalogOptions, setCarCatalogOptions] = useState<{ value: string, label: string }[]>([])
   const [carCatalogData, setCarCatalogData] = useState<CarCatalogOption[]>([]) // Store full catalog data
-  const [vendorOptions, setVendorOptions] = useState<{value: string, label: string}[]>([])
-  const [parkingOptions, setParkingOptions] = useState<{value: string, label: string}[]>([])
+  const [vendorOptions, setVendorOptions] = useState<{ value: string, label: string }[]>([])
+  const [parkingOptions, setParkingOptions] = useState<{ value: string, label: string }[]>([])
   const [loadingOptions, setLoadingOptions] = useState({
     carCatalog: false,
     vendors: false,
     parkings: false
   })
-  
+
   // Selected values
   const [selectedCarCatalog, setSelectedCarCatalog] = useState<string | null>(null)
   const [selectedVendor, setSelectedVendor] = useState<string | null>(null)
   const [selectedParking, setSelectedParking] = useState<string | null>(null)
-  
+
   // Handle car catalog selection and prefill price and name
   const handleCarCatalogChange = (catalogId: string | null) => {
     setSelectedCarCatalog(catalogId)
-    
+
     if (catalogId) {
       // Find the selected catalog item and prefill the price and name
       const catalogItem = carCatalogData.find(item => item.id.toString() === catalogId)
@@ -106,7 +107,7 @@ export default function AddCarPage() {
       }
     }
   }
-  
+
   const [formData, setFormData] = useState<CarFormData>({
     name: '',
     carnumber: '',
@@ -118,14 +119,15 @@ export default function AddCarPage() {
     rcimg: '',
     pollutionimg: '',
     insuranceimg: '',
-    inmaintainance: false,
-    isavailable: true,
     images: [],
     mainimg: '',
     vendorid: 0,
     parkingid: null,
     isapproved: false,
-    ispopular: false
+    ispopular: false,
+    status: 'available',
+    fineperhour: 0,
+    extensionperhour: 0
   })
 
   // Fetch car catalog options
@@ -134,7 +136,7 @@ export default function AddCarPage() {
     try {
       const baseUrl = getBaseUrl()
       const accessToken = Cookies.get('accessToken')
-      
+
       if (!accessToken) {
         toast.error('No access token found')
         return
@@ -172,7 +174,7 @@ export default function AddCarPage() {
     try {
       const baseUrl = getBaseUrl()
       const accessToken = Cookies.get('accessToken')
-      
+
       if (!accessToken) {
         toast.error('No access token found')
         return
@@ -208,7 +210,7 @@ export default function AddCarPage() {
     try {
       const baseUrl = getBaseUrl()
       const accessToken = Cookies.get('accessToken')
-      
+
       if (!accessToken) {
         toast.error('No access token found')
         return
@@ -302,11 +304,16 @@ export default function AddCarPage() {
         catalogId: parseInt(selectedCarCatalog),
         vendorid: parseInt(selectedVendor),
         parkingid: selectedParking ? parseInt(selectedParking) : null,
+        isavailable: formData.status === 'available',
+        inmaintainance: formData.status === 'maintenance',
+        status: formData.status,
         // Ensure image URLs are valid or empty strings
         rcimg: formData.rcimg || '',
         pollutionimg: formData.pollutionimg || '',
         insuranceimg: formData.insuranceimg || '',
-        mainimg: formData.mainimg || ''
+        mainimg: formData.mainimg || '',
+        fineperhour: formData.fineperhour || 0,
+        extensionperhour: formData.extensionperhour || 0
       }
 
       console.log('Submitting car data:', submitData)
@@ -357,8 +364,8 @@ export default function AddCarPage() {
     try {
       const result = await uploadImageToCloudinary(file, 'car-rental/main')
       if (result.success && result.data) {
-    setFormData(prev => ({
-      ...prev,
+        setFormData(prev => ({
+          ...prev,
           mainimg: result.data!.secure_url
         }))
         toast.success('Main image uploaded successfully!')
@@ -382,8 +389,8 @@ export default function AddCarPage() {
     try {
       const result = await uploadImageToCloudinary(file, 'car-rental/additional')
       if (result.success && result.data) {
-    setFormData(prev => ({
-      ...prev,
+        setFormData(prev => ({
+          ...prev,
           images: [...prev.images, result.data!.secure_url]
         }))
         toast.success(`${file.name} uploaded successfully!`)
@@ -463,9 +470,9 @@ export default function AddCarPage() {
           insuranceimg: result.data!.secure_url
         }))
         toast.success('Insurance document uploaded successfully!')
-        } else {
+      } else {
         toast.error('Failed to upload insurance document')
-        }
+      }
     } catch (error) {
       console.error('Insurance image upload error:', error)
       toast.error('Failed to upload insurance document')
@@ -484,11 +491,11 @@ export default function AddCarPage() {
 
   const handleAdditionalImageChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = Array.from(e.target.files || [])
-    
+
     if (files.length === 0) return
-    
+
     setAdditionalImageLoading(true)
-    
+
     try {
       // Upload all files sequentially
       for (const file of files) {
@@ -505,8 +512,8 @@ export default function AddCarPage() {
     const file = e.target.files?.[0]
     if (file) {
       uploadRcImage(file)
-        }
-      }
+    }
+  }
 
   const handlePollutionImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0]
@@ -519,8 +526,8 @@ export default function AddCarPage() {
     const file = e.target.files?.[0]
     if (file) {
       uploadInsuranceImage(file)
-        }
-      }
+    }
+  }
 
   // Load options on component mount
   useEffect(() => {
@@ -648,6 +655,26 @@ export default function AddCarPage() {
                     placeholder="2700"
                   />
                 </div>
+                <div>
+                  <Label htmlFor="fineperhour">Fine Per Hour (₹)</Label>
+                  <Input
+                    id="fineperhour"
+                    type="number"
+                    value={formData.fineperhour}
+                    onChange={(e) => handleInputChange('fineperhour', parseFloat(e.target.value))}
+                    placeholder="100"
+                  />
+                </div>
+                <div>
+                  <Label htmlFor="extensionperhour">Extension Per Hour (₹)</Label>
+                  <Input
+                    id="extensionperhour"
+                    type="number"
+                    value={formData.extensionperhour}
+                    onChange={(e) => handleInputChange('extensionperhour', parseFloat(e.target.value))}
+                    placeholder="150"
+                  />
+                </div>
               </div>
             </div>
 
@@ -696,7 +723,7 @@ export default function AddCarPage() {
                         </div>
                       )}
                     </div>
-                    
+
                     {/* RC Image Preview */}
                     {(formData.rcimg) && (
                       <div className="mt-3">
@@ -761,7 +788,7 @@ export default function AddCarPage() {
                         </div>
                       )}
                     </div>
-                    
+
                     {/* Pollution Certificate Preview */}
                     {(formData.pollutionimg) && (
                       <div className="mt-3">
@@ -824,7 +851,7 @@ export default function AddCarPage() {
                         </div>
                       )}
                     </div>
-                    
+
                     {/* Insurance Preview */}
                     {(formData.insuranceimg) && (
                       <div className="mt-3">
@@ -862,7 +889,7 @@ export default function AddCarPage() {
             {/* Images */}
             <div className="space-y-4">
               <h3 className="text-lg font-medium">Images</h3>
-              
+
               {/* Main Image */}
               <div>
                 <Label htmlFor="mainimg">Main Image *</Label>
@@ -896,7 +923,7 @@ export default function AddCarPage() {
                       </div>
                     )}
                   </div>
-                  
+
                   {/* Main Image Preview */}
                   {(formData.mainimg) && (
                     <div className="mt-3">
@@ -1070,21 +1097,23 @@ export default function AddCarPage() {
             <div className="space-y-4">
               <h3 className="text-lg font-medium">Status</h3>
               <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-                <div className="flex items-center space-x-2">
-                  <Switch
-                    id="isavailable"
-                    checked={formData.isavailable}
-                    onCheckedChange={(checked: any) => handleInputChange('isavailable', checked)}
-                  />
-                  <Label htmlFor="isavailable">Available</Label>
-                </div>
-                <div className="flex items-center space-x-2">
-                  <Switch
-                    id="inmaintainance"
-                    checked={formData.inmaintainance}
-                    onCheckedChange={(checked: any) => handleInputChange('inmaintainance', checked)}
-                  />
-                  <Label htmlFor="inmaintainance">In Maintenance</Label>
+                <div className="md:col-span-2">
+                  <Label htmlFor="status">Status</Label>
+                  <Select
+                    value={formData.status}
+                    onValueChange={(value) => handleInputChange('status', value)}
+                  >
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select status" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="available">Available</SelectItem>
+                      <SelectItem value="rented">Rented</SelectItem>
+                      <SelectItem value="maintenance">Maintenance</SelectItem>
+                      <SelectItem value="out_of_service">Out of Service</SelectItem>
+                      <SelectItem value="unavailable">Unavailable</SelectItem>
+                    </SelectContent>
+                  </Select>
                 </div>
                 <div className="flex items-center space-x-2">
                   <Switch
@@ -1107,21 +1136,21 @@ export default function AddCarPage() {
 
             {/* Submit Button */}
             <div className="flex gap-4">
-              <Button 
-                type="submit" 
+              <Button
+                type="submit"
                 disabled={
-                  loading || 
-                  mainImageLoading || 
-                  additionalImageLoading || 
-                  rcImageLoading || 
-                  pollutionImageLoading || 
+                  loading ||
+                  mainImageLoading ||
+                  additionalImageLoading ||
+                  rcImageLoading ||
+                  pollutionImageLoading ||
                   insuranceImageLoading ||
                   loadingOptions.carCatalog ||
                   loadingOptions.vendors ||
                   loadingOptions.parkings ||
                   !selectedCarCatalog ||
                   !selectedVendor
-                } 
+                }
                 className="flex-1"
               >
                 {loading ? 'Adding Car...' : 'Add Car'}
@@ -1131,11 +1160,11 @@ export default function AddCarPage() {
                 variant="outline"
                 onClick={() => router.push('/dashboard/cars')}
                 disabled={
-                  loading || 
-                  mainImageLoading || 
-                  additionalImageLoading || 
-                  rcImageLoading || 
-                  pollutionImageLoading || 
+                  loading ||
+                  mainImageLoading ||
+                  additionalImageLoading ||
+                  rcImageLoading ||
+                  pollutionImageLoading ||
                   insuranceImageLoading
                 }
               >

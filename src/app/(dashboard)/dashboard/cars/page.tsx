@@ -6,13 +6,13 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
-import { 
-  Table, 
-  TableBody, 
-  TableCell, 
-  TableHead, 
-  TableHeader, 
-  TableRow 
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow
 } from '@/components/ui/table'
 import {
   Dialog,
@@ -36,7 +36,8 @@ const statusColors = {
   available: 'bg-green-100 text-green-800',
   rented: 'bg-orange-100 text-orange-800',
   maintenance: 'bg-orange-100 text-orange-800',
-  out_of_service: 'bg-red-100 text-red-800'
+  out_of_service: 'bg-red-100 text-red-800',
+  unavailable: 'bg-red-100 text-red-800'
 }
 
 export default function CarsPage() {
@@ -53,7 +54,7 @@ export default function CarsPage() {
   const [endDate, setEndDate] = useState('')
   const [bookingFilterLoading, setBookingFilterLoading] = useState(false)
   const [showPopularOnly, setShowPopularOnly] = useState(false)
-  
+
   // Advanced filters
   const [makerFilter, setMakerFilter] = useState('all')
   const [typeFilter, setTypeFilter] = useState('all')
@@ -85,7 +86,7 @@ export default function CarsPage() {
           fuel: fuelFilter !== 'all' ? fuelFilter : undefined,
           transmission: transmissionFilter !== 'all' ? transmissionFilter : undefined
         })
-        
+
         if (carsResult.success && carsResult.data) {
           setCars(carsResult.data)
         } else {
@@ -124,7 +125,7 @@ export default function CarsPage() {
             fuel: fuelFilter !== 'all' ? fuelFilter : undefined,
             transmission: transmissionFilter !== 'all' ? transmissionFilter : undefined
           })
-          
+
           if (result.success && result.data) {
             setCars(result.data)
           }
@@ -175,8 +176,8 @@ export default function CarsPage() {
         // Update local state
         const carsArray = Array.isArray(cars) ? cars : []
         setCars(carsArray.map(car =>
-          car.id === carId ? { 
-            ...car, 
+          car.id === carId ? {
+            ...car,
             isavailable: newStatus === 'available',
             inmaintainance: newStatus === 'maintenance'
           } : car
@@ -299,7 +300,7 @@ export default function CarsPage() {
                 <SelectContent>
                   <SelectItem value="all">All Status</SelectItem>
                   <SelectItem value="available">Available</SelectItem>
-                  <SelectItem value="rented">Rented</SelectItem>
+                  <SelectItem value="rented">Booked</SelectItem>
                   <SelectItem value="maintenance">Maintenance</SelectItem>
                   <SelectItem value="out_of_service">Out of Service</SelectItem>
                 </SelectContent>
@@ -363,7 +364,7 @@ export default function CarsPage() {
                 Clear Date Filter
               </Button>
             </div>
-            
+
             {/* Advanced Filters */}
             <div className="flex gap-4 items-center flex-wrap">
               <div className="flex items-center gap-2">
@@ -386,7 +387,7 @@ export default function CarsPage() {
                   <SelectItem value="Audi">Audi</SelectItem>
                 </SelectContent>
               </Select>
-              
+
               <Select value={typeFilter} onValueChange={setTypeFilter}>
                 <SelectTrigger className="w-40">
                   <SelectValue placeholder="Type" />
@@ -400,7 +401,7 @@ export default function CarsPage() {
                   <SelectItem value="luxury">Luxury</SelectItem>
                 </SelectContent>
               </Select>
-              
+
               <Select value={fuelFilter} onValueChange={setFuelFilter}>
                 <SelectTrigger className="w-40">
                   <SelectValue placeholder="Fuel" />
@@ -413,7 +414,7 @@ export default function CarsPage() {
                   <SelectItem value="hybrid">Hybrid</SelectItem>
                 </SelectContent>
               </Select>
-              
+
               <Select value={transmissionFilter} onValueChange={setTransmissionFilter}>
                 <SelectTrigger className="w-40">
                   <SelectValue placeholder="Transmission" />
@@ -424,7 +425,7 @@ export default function CarsPage() {
                   <SelectItem value="automatic">Automatic</SelectItem>
                 </SelectContent>
               </Select>
-              
+
               <Button
                 variant="outline"
                 onClick={() => {
@@ -479,9 +480,9 @@ export default function CarsPage() {
                     <TableCell className="font-mono">{car.carnumber}</TableCell>
                     <TableCell className="capitalize">{car.type}</TableCell>
                     <TableCell>
-                          <Badge className={statusColors[car.inmaintainance ? 'maintenance' : (car.isavailable ? 'available' : 'rented')]}>
-                            {car.inmaintainance ? 'maintenance' : (car.isavailable ? 'available' : 'rented')}
-                          </Badge>
+                      <Badge className={statusColors[car.status as keyof typeof statusColors] || 'bg-gray-100 text-gray-800'}>
+                        {car.status}
+                      </Badge>
                     </TableCell>
                     <TableCell>
                       <p className="font-medium">{formatCurrency(car.price)}/day</p>
@@ -562,8 +563,8 @@ export default function CarsPage() {
                                     <h3 className="text-xl font-semibold">{selectedCar.name}</h3>
                                     <p className="text-gray-600">{selectedCar.maker} • {selectedCar.year}</p>
                                     <div className="flex items-center gap-2 mt-2">
-                                      <Badge className={statusColors[selectedCar.inmaintainance ? 'maintenance' : (selectedCar.isavailable ? 'available' : 'rented')]}>
-                                        {selectedCar.inmaintainance ? 'maintenance' : (selectedCar.isavailable ? 'available' : 'rented')}
+                                      <Badge className={statusColors[selectedCar.status as keyof typeof statusColors] || 'bg-gray-100 text-gray-800'}>
+                                        {selectedCar.status}
                                       </Badge>
                                       <span className="font-mono text-sm bg-gray-100 px-2 py-1 rounded">
                                         {selectedCar.carnumber}
@@ -647,6 +648,15 @@ export default function CarsPage() {
                                     <div className="p-3 bg-gray-50 rounded-lg">
                                       <p className="text-sm text-gray-600">Discounted Price</p>
                                       <p className="font-medium">{selectedCar.discountedprice < selectedCar.price ? formatCurrency(selectedCar.discountedprice) : 'No discount'}</p>
+
+                                    </div>
+                                    <div className="p-3 bg-gray-50 rounded-lg">
+                                      <p className="text-sm text-gray-600">Fine per hour</p>
+                                      <p className="font-medium">{selectedCar.fineperhour ? selectedCar.fineperhour : 0}</p>
+                                    </div>
+                                    <div className="p-3 bg-gray-50 rounded-lg">
+                                      <p className="text-sm text-gray-600">Extension per hour</p>
+                                      <p className="font-medium">{selectedCar.extensionperhour ? selectedCar.extensionperhour : 0}</p>
                                     </div>
                                   </div>
                                 </div>
@@ -660,12 +670,8 @@ export default function CarsPage() {
                                     </h4>
                                     <div className="space-y-3">
                                       <div className="p-3 bg-gray-50 rounded-lg">
-                                        <p className="text-sm text-gray-600">Maintenance Status</p>
-                                        <p className="font-medium">{selectedCar.inmaintainance ? 'In Maintenance' : 'Not in Maintenance'}</p>
-                                      </div>
-                                      <div className="p-3 bg-gray-50 rounded-lg">
-                                        <p className="text-sm text-gray-600">Available</p>
-                                        <p className="font-medium">{selectedCar.isavailable ? 'Yes' : 'No'}</p>
+                                        <p className="text-sm text-gray-600">Status</p>
+                                        <p className="font-medium">{selectedCar.status}</p>
                                       </div>
                                       <div className="p-3 bg-gray-50 rounded-lg">
                                         <p className="text-sm text-gray-600">Approved</p>
@@ -804,9 +810,9 @@ export default function CarsPage() {
                                               <p className="text-gray-500">RC Document</p>
                                             </div>
                                           </div>
-                                          <a 
-                                            href={selectedCar.rcimg} 
-                                            target="_blank" 
+                                          <a
+                                            href={selectedCar.rcimg}
+                                            target="_blank"
                                             rel="noopener noreferrer"
                                             className="absolute top-2 right-2 bg-black bg-opacity-50 text-white px-2 py-1 rounded text-xs hover:bg-opacity-70 transition-opacity"
                                           >
@@ -837,9 +843,9 @@ export default function CarsPage() {
                                               <p className="text-gray-500">Pollution Certificate</p>
                                             </div>
                                           </div>
-                                          <a 
-                                            href={selectedCar.pollutionimg} 
-                                            target="_blank" 
+                                          <a
+                                            href={selectedCar.pollutionimg}
+                                            target="_blank"
                                             rel="noopener noreferrer"
                                             className="absolute top-2 right-2 bg-black bg-opacity-50 text-white px-2 py-1 rounded text-xs hover:bg-opacity-70 transition-opacity"
                                           >
@@ -870,9 +876,9 @@ export default function CarsPage() {
                                               <p className="text-gray-500">Insurance Document</p>
                                             </div>
                                           </div>
-                                          <a 
-                                            href={selectedCar.insuranceimg} 
-                                            target="_blank" 
+                                          <a
+                                            href={selectedCar.insuranceimg}
+                                            target="_blank"
                                             rel="noopener noreferrer"
                                             className="absolute top-2 right-2 bg-black bg-opacity-50 text-white px-2 py-1 rounded text-xs hover:bg-opacity-70 transition-opacity"
                                           >
@@ -914,9 +920,9 @@ export default function CarsPage() {
                                                 <p className="text-gray-500">Image not available</p>
                                               </div>
                                             </div>
-                                            <a 
-                                              href={selectedCar.mainimg} 
-                                              target="_blank" 
+                                            <a
+                                              href={selectedCar.mainimg}
+                                              target="_blank"
                                               rel="noopener noreferrer"
                                               className="absolute top-2 right-2 bg-black bg-opacity-50 text-white px-2 py-1 rounded text-xs hover:bg-opacity-70 transition-opacity"
                                             >
@@ -949,9 +955,9 @@ export default function CarsPage() {
                                                     <p className="text-gray-500 text-sm">Image {index + 1}</p>
                                                   </div>
                                                 </div>
-                                                <a 
-                                                  href={image} 
-                                                  target="_blank" 
+                                                <a
+                                                  href={image}
+                                                  target="_blank"
                                                   rel="noopener noreferrer"
                                                   className="absolute top-2 right-2 bg-black bg-opacity-50 text-white px-2 py-1 rounded text-xs hover:bg-opacity-70 transition-opacity"
                                                 >
@@ -987,8 +993,8 @@ export default function CarsPage() {
                             )}
                           </DialogContent>
                         </Dialog>
-                        <Button 
-                          variant="ghost" 
+                        <Button
+                          variant="ghost"
                           size="sm"
                           onClick={() => router.push(`/dashboard/cars/edit/${car.id}`)}
                         >

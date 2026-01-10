@@ -158,3 +158,26 @@ export const getBaseUrl = (): string => BASE_URL
 // Helper function to get Cloudinary URL
 export const getCloudinaryUrl = (cloudName: string): string =>
   CLOUDINARY_URLS.UPLOAD_IMAGE(cloudName)
+
+// Advertisement management endpoints
+export const ADVERTISEMENT_URLS = {
+  // POST {{base_url}}/advertisements/create
+  CREATE: `${BASE_URL}/advertisements/create`,
+  // GET {{base_url}}/advertisements/admin/all
+  GET_ALL: `${BASE_URL}/advertisements/admin/all`,
+  // GET {{base_url}}/advertisements/:id
+  GET_BY_ID: (id: number) => `${BASE_URL}/advertisements/${id}`,
+  // PUT {{base_url}}/advertisements/:id
+  UPDATE: (id: number) => `${BASE_URL}/advertisements/${id}`,
+  // DELETE {{base_url}}/advertisements/:id
+  DELETE: (id: number) => `${BASE_URL}/advertisements/${id}`,
+} as const
+
+// Coupon management endpoints
+export const COUPON_URLS = {
+  CREATE: `${BASE_URL}/coupons/`,
+  GET_ALL_ADMIN: `${BASE_URL}/coupons/admin`,
+  GET_BY_ID: (id: number) => `${BASE_URL}/coupons/${id}`,
+  UPDATE: (id: number) => `${BASE_URL}/coupons/${id}`,
+  DELETE: (id: number) => `${BASE_URL}/coupons/${id}`,
+} as const
