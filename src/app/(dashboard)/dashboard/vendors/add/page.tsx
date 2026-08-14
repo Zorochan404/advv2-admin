@@ -33,7 +33,6 @@ export default function AddVendorPage() {
     pincode: "",
     number: "",
     email: "",
-    password: "",
     avatar: "",
     role: "vendor",
     isverified: false,
@@ -237,10 +236,10 @@ export default function AddVendorPage() {
 
               </CardContent>
             </Card>
-            {/* Contact & Credentials */}
+            {/* Contact */}
             <Card>
               <CardHeader>
-                <CardTitle>Contact & Credentials</CardTitle>
+                <CardTitle>Contact</CardTitle>
               </CardHeader>
               <CardContent className="space-y-4">
                 <div className="grid grid-cols-2 gap-4">
@@ -262,15 +261,6 @@ export default function AddVendorPage() {
                       required
                     />
                   </div>
-                </div>
-                <div>
-                  <Label>Password</Label>
-                  <Input
-                    type="password"
-                    value={form.password}
-                    onChange={(e) => handleInputChange("password", e.target.value)}
-                    required
-                  />
                 </div>
               </CardContent>
             </Card>

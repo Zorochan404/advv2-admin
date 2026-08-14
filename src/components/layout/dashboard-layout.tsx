@@ -21,7 +21,6 @@ import {
   Users,
   MapPin,
   Calendar,
-  BarChart3,
   Menu,
   LogOut,
   Settings,
@@ -36,7 +35,6 @@ import {
 const navigation = [
   { name: 'Dashboard', href: '/dashboard', icon: Home },
   { name: 'Cars', href: '/dashboard/cars', icon: Car },
-  { name: 'Car Catalog', href: '/dashboard/car-catalog', icon: BookOpen },
   { name: 'Parking Spots', href: '/dashboard/parking', icon: MapPin },
   { name: 'Users', href: '/dashboard/users', icon: Users },
   { name: 'Bookings', href: '/dashboard/bookings', icon: Calendar },
@@ -46,7 +44,6 @@ const navigation = [
   { name: 'Parking Approvals', href: '/dashboard/parking-approvals', icon: MapPin },
   { name: 'Advertisements', href: '/dashboard/advertisements', icon: BookOpen },
   { name: 'Coupon Management', href: '/dashboard/coupons', icon: Ticket },
-  // { name: 'Analytics', href: '/dashboard/analytics', icon: BarChart3 },
 ]
 
 interface DashboardLayoutProps {

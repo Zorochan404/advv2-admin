@@ -28,7 +28,7 @@ export interface VendorFormData {
     age: number | "";
     number: string | "";
     email: string;
-    password: string;
+    password?: string;
     aadharNumber: string;
     aadharimg: string;
     dlNumber: string;

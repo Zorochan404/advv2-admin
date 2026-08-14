@@ -9,22 +9,13 @@ import { Label } from '@/components/ui/label'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Textarea } from '@/components/ui/textarea'
 import { Switch } from '@/components/ui/switch'
-import { ArrowLeft, Plus, Upload, X, Eye, Loader2 } from 'lucide-react'
+import { ArrowLeft, Upload, X, Eye, Loader2 } from 'lucide-react'
 import { toast } from 'sonner'
 import axios from 'axios'
 import Cookies from 'js-cookie'
-import { getBaseUrl, CAR_CATALOG_URLS, VENDOR_URLS, ADMIN_PARKING_URLS } from '@/lib/urls'
+import { getBaseUrl, VENDOR_URLS, ADMIN_PARKING_URLS } from '@/lib/urls'
 import { uploadImageToCloudinary, validateImageFile } from '@/lib/cloudinary'
 import { FancySingleSelect } from '@/components/ui/fancy-single-select'
-
-interface CarCatalogOption {
-  id: number
-  carName: string
-  carMaker: string
-  carModelYear: number
-  category: string
-  carPlatformPrice: string
-}
 
 interface VendorOption {
   id: number
@@ -43,6 +34,7 @@ interface ParkingOption {
 
 interface CarFormData {
   name: string
+  modelyear: number
   carnumber: string
   price: number
   insurancePrice: number
@@ -75,41 +67,20 @@ export default function AddCarPage() {
   const [insuranceImageLoading, setInsuranceImageLoading] = useState(false)
 
   // Select options and loading states
-  const [carCatalogOptions, setCarCatalogOptions] = useState<{ value: string, label: string }[]>([])
-  const [carCatalogData, setCarCatalogData] = useState<CarCatalogOption[]>([]) // Store full catalog data
   const [vendorOptions, setVendorOptions] = useState<{ value: string, label: string }[]>([])
   const [parkingOptions, setParkingOptions] = useState<{ value: string, label: string }[]>([])
   const [loadingOptions, setLoadingOptions] = useState({
-    carCatalog: false,
     vendors: false,
     parkings: false
   })
 
   // Selected values
-  const [selectedCarCatalog, setSelectedCarCatalog] = useState<string | null>(null)
   const [selectedVendor, setSelectedVendor] = useState<string | null>(null)
   const [selectedParking, setSelectedParking] = useState<string | null>(null)
 
-  // Handle car catalog selection and prefill price and name
-  const handleCarCatalogChange = (catalogId: string | null) => {
-    setSelectedCarCatalog(catalogId)
-
-    if (catalogId) {
-      // Find the selected catalog item and prefill the price and name
-      const catalogItem = carCatalogData.find(item => item.id.toString() === catalogId)
-      if (catalogItem) {
-        // Prefill with the platform price and car name from the catalog
-        setFormData(prev => ({
-          ...prev,
-          name: catalogItem.carName,
-          price: parseFloat(catalogItem.carPlatformPrice) || 0
-        }))
-      }
-    }
-  }
-
   const [formData, setFormData] = useState<CarFormData>({
     name: '',
+    modelyear: new Date().getFullYear(),
     carnumber: '',
     price: 0,
     insurancePrice: 500, // Default insurance amount
@@ -130,49 +101,10 @@ export default function AddCarPage() {
     extensionperhour: 0
   })
 
-  // Fetch car catalog options
-  const fetchCarCatalogOptions = async () => {
-    setLoadingOptions(prev => ({ ...prev, carCatalog: true }))
-    try {
-      const baseUrl = getBaseUrl()
-      const accessToken = Cookies.get('accessToken')
-
-      if (!accessToken) {
-        toast.error('No access token found')
-        return
-      }
-
-      const response = await axios.get(CAR_CATALOG_URLS.GET_ALL, {
-        headers: {
-          'Authorization': `Bearer ${accessToken}`,
-        },
-      })
-
-      if (response.data.success && response.data.data && response.data.data.data) {
-        const catalogData = response.data.data.data
-        const options = catalogData.map((item: CarCatalogOption) => ({
-          value: item.id.toString(),
-          label: `${item.carName} (${item.carMaker} ${item.carModelYear}) - ${item.category}`
-        }))
-        setCarCatalogOptions(options)
-        setCarCatalogData(catalogData) // Store full catalog data
-        console.log('Car catalog options loaded:', options.length)
-      } else {
-        console.error('Car catalog API response structure:', response.data)
-      }
-    } catch (error) {
-      console.error('Error fetching car catalog options:', error)
-      toast.error('Failed to load car catalog options')
-    } finally {
-      setLoadingOptions(prev => ({ ...prev, carCatalog: false }))
-    }
-  }
-
   // Fetch vendor options
   const fetchVendorOptions = async () => {
     setLoadingOptions(prev => ({ ...prev, vendors: true }))
     try {
-      const baseUrl = getBaseUrl()
       const accessToken = Cookies.get('accessToken')
 
       if (!accessToken) {
@@ -208,7 +140,6 @@ export default function AddCarPage() {
   const fetchParkingOptions = async () => {
     setLoadingOptions(prev => ({ ...prev, parkings: true }))
     try {
-      const baseUrl = getBaseUrl()
       const accessToken = Cookies.get('accessToken')
 
       if (!accessToken) {
@@ -245,12 +176,6 @@ export default function AddCarPage() {
     setLoading(true)
 
     // Validate required selections
-    if (!selectedCarCatalog) {
-      toast.error('Please select a car template from the catalog')
-      setLoading(false)
-      return
-    }
-
     if (!selectedVendor) {
       toast.error('Please select a vendor')
       setLoading(false)
@@ -260,6 +185,12 @@ export default function AddCarPage() {
     // Validate required form fields
     if (!formData.name.trim()) {
       toast.error('Please enter a car name')
+      setLoading(false)
+      return
+    }
+
+    if (!formData.modelyear || Number.isNaN(formData.modelyear) || formData.modelyear < 1900) {
+      toast.error('Please enter a valid model year')
       setLoading(false)
       return
     }
@@ -301,7 +232,6 @@ export default function AddCarPage() {
       const submitData = {
         ...formData,
         number: formData.carnumber, // Backend expects 'number' field
-        catalogId: parseInt(selectedCarCatalog),
         vendorid: parseInt(selectedVendor),
         parkingid: selectedParking ? parseInt(selectedParking) : null,
         isavailable: formData.status === 'available',
@@ -531,7 +461,6 @@ export default function AddCarPage() {
 
   // Load options on component mount
   useEffect(() => {
-    fetchCarCatalogOptions()
     fetchVendorOptions()
     fetchParkingOptions()
   }, [])
@@ -585,9 +514,19 @@ export default function AddCarPage() {
                     placeholder="Hyundai Creta"
                     required
                   />
-                  <p className="text-xs text-gray-500 mt-1">
-                    Prefilled from car template, but can be edited
-                  </p>
+                </div>
+                <div>
+                  <Label htmlFor="modelyear">Model Year *</Label>
+                  <Input
+                    id="modelyear"
+                    type="number"
+                    min="1900"
+                    max={new Date().getFullYear() + 1}
+                    value={formData.modelyear}
+                    onChange={(e) => handleInputChange('modelyear', parseInt(e.target.value, 10) || 0)}
+                    placeholder="2024"
+                    required
+                  />
                 </div>
                 <div>
                   <Label htmlFor="carnumber">Car Number *</Label>
@@ -627,9 +566,6 @@ export default function AddCarPage() {
                     placeholder="3000"
                     required
                   />
-                  <p className="text-xs text-gray-500 mt-1">
-                    Prefilled from car template, but can be edited
-                  </p>
                 </div>
                 <div>
                   <Label htmlFor="insurancePrice">Insurance Price (₹) *</Label>
@@ -1034,28 +970,6 @@ export default function AddCarPage() {
               </div>
             </div>
 
-            {/* Car Template Selection */}
-            <div className="space-y-4">
-              <h3 className="text-lg font-medium">Car Template *</h3>
-              <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
-                <p className="text-sm text-blue-800 mb-4">
-                  <strong>Required:</strong> Select a car template from the catalog. This will automatically fill in the car specifications.
-                </p>
-                {loadingOptions.carCatalog ? (
-                  <div className="flex items-center gap-2">
-                    <Loader2 className="h-4 w-4 animate-spin" />
-                    <span className="text-sm text-gray-600">Loading car templates...</span>
-                  </div>
-                ) : (
-                  <FancySingleSelect
-                    options={carCatalogOptions}
-                    placeholder="Select a car template..."
-                    onChange={handleCarCatalogChange}
-                  />
-                )}
-              </div>
-            </div>
-
             {/* Business Information */}
             <div className="space-y-4">
               <h3 className="text-lg font-medium">Business Information</h3>
@@ -1145,10 +1059,8 @@ export default function AddCarPage() {
                   rcImageLoading ||
                   pollutionImageLoading ||
                   insuranceImageLoading ||
-                  loadingOptions.carCatalog ||
                   loadingOptions.vendors ||
                   loadingOptions.parkings ||
-                  !selectedCarCatalog ||
                   !selectedVendor
                 }
                 className="flex-1"
